@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -117,17 +116,31 @@ func handlerTracksOut(w http.ResponseWriter, r *http.Request) {
 }
 
 func handlerMetaTrack(w http.ResponseWriter, r *http.Request) {
-	id, _ := findParams(r)
+	vars := mux.Vars(r)
+	varID := vars["id"]
+	id, err := strconv.Atoi(varID)
+	if err != nil {
+		//error
+		return
+	}
+
 	if id >= len(Tracks) {
 		http.Error(w, "Not Found", 404)
 		return
 	}
 
-	json.NewEncoder(w).Encode(MetaInf[id])
+	json.NewEncoder(w).Encode(MetaInf[id-1])
 }
 
 func handlerSpecificTrack(w http.ResponseWriter, r *http.Request) {
-	id, field := findParams(r)
+	vars := mux.Vars(r)
+	varID := vars["id"]
+	field := vars["field"]
+	id, err := strconv.Atoi(varID)
+	if err != nil {
+		//error
+		return
+	}
 
 	if id >= len(Tracks) {
 		http.Error(w, "Not Found", 404)
@@ -163,6 +176,7 @@ func updateMeta(id int) {
 	fmt.Println(len(MetaInf), len(Tracks))
 }
 
+/*
 func findParams(r *http.Request) (int, string) {
 	in := strings.Trim(r.URL.Path, "/lgcinfo/api/igc/")
 	parts := strings.Split(in, "/")
@@ -182,6 +196,7 @@ func findParams(r *http.Request) (int, string) {
 	field := parts[1]
 	return id, field
 }
+*/
 
 //GetPort ...
 func GetPort() string {
