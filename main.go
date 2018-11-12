@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -184,14 +183,22 @@ func findParams(r *http.Request) (int, string) {
 	return id, field
 }
 
+func GetPort() string {
+	var port = os.Getenv("PORT")
+	if port == "" {
+		port = "5000"
+		fmt.Println("Could not find port in environment, setting port to: " + port)
+	}
+	return ":" + port
+}
+
 func main() {
 	StartTime = time.Now()
 	r := mux.NewRouter()
-	port := os.Getenv("PORT")
 	r.HandleFunc("/igcinfo/api", handlerAPI).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc", handlerTracksIn).Methods("POST")
 	r.HandleFunc("/igcinfo/api/igc", handlerTracksOut).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc/{id}", handlerMetaTrack).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc/{id}/{field}", handlerSpecificTrack).Methods("GET")
-	log.Fatal(http.ListenAndServe(":"+port, r))
+	http.ListenAndServe(GetPort(), r)
 }
