@@ -136,15 +136,15 @@ func handlerSpecificTrack(w http.ResponseWriter, r *http.Request) {
 
 	switch field {
 	case "pilot":
-		fmt.Fprintln(w, MetaInf[id-1].Pilot)
+		fmt.Fprintf(w, MetaInf[id-1].Pilot)
 	case "glider":
-		fmt.Fprintln(w, MetaInf[id-1].GliderType)
+		fmt.Fprintf(w, MetaInf[id-1].GliderType)
 	case "glider_id":
-		fmt.Fprintln(w, MetaInf[id-1].GliderID)
+		fmt.Fprintf(w, MetaInf[id-1].GliderID)
 	case "track_length":
-		fmt.Fprintln(w, MetaInf[id-1].TrackLength)
+		fmt.Fprintf(w, strconv.FormatFloat(MetaInf[id-1].TrackLength, 'f', 0, 64))
 	case "H_date":
-		fmt.Fprintln(w, MetaInf[id-1].Hdate)
+		fmt.Fprintf(w, MetaInf[id-1].Hdate.String())
 	default:
 		http.Error(w, "Bad Request", 400)
 		return
@@ -183,6 +183,7 @@ func findParams(r *http.Request) (int, string) {
 	return id, field
 }
 
+//GetPort ...
 func GetPort() string {
 	var port = os.Getenv("PORT")
 	if port == "" {
