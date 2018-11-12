@@ -1,4 +1,4 @@
-module idc
+module github.com/heroku/idc
 
 require (
 	github.com/gorilla/mux v1.6.2

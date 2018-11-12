@@ -1,1 +1,1 @@
-web: IGCTrackView
+web: idc
