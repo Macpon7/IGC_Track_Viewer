@@ -23,6 +23,9 @@ var MetaInf []metaTrack
 //Tracks ...
 var Tracks []igc.Track
 
+//totalID ...
+var totalID int
+
 type metaInf struct {
 	Uptime  string `json:"uptime"`
 	Info    string `json:"info"`
@@ -86,29 +89,42 @@ func handlerTracksIn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request", 400)
 		return
 	}
+
 	inurl, err := url.Parse(input.URL)
 	if err != nil {
 		http.Error(w, "Bad Request", 400)
 		return
 	}
 	igcsrc := inurl.String()
+
 	tempTrack, err := igc.ParseLocation(igcsrc)
 	if err != nil {
 		http.Error(w, "Bad Request", 400)
 		return
 	}
-	Tracks = append(Tracks, tempTrack)
-	id := len(Tracks)
-	updateMeta(id)
 
-	json.NewEncoder(w).Encode(id)
+	totalID++
+
+	tempLength := 0.0
+	for i := 0; i < len(tempTrack.Points)-1; i++ {
+		tempLength += tempTrack.Points[i].Distance(tempTrack.Points[i+1])
+	}
+
+	var tempMeta = metaTrack{
+		Pilot:       tempTrack.Header.Pilot,
+		GliderType:  tempTrack.Header.GliderType,
+		GliderID:    tempTrack.Header.GliderID,
+		TrackLength: tempLength,
+		Hdate:       tempTrack.Header.Date,
+	}
+	MetaInf = append(MetaInf, tempMeta)
+
+	json.NewEncoder(w).Encode(totalID)
 }
 
 func handlerTracksOut(w http.ResponseWriter, r *http.Request) {
-	id := len(Tracks)
-
 	var idArray []int
-	for i := 1; i <= id; i++ {
+	for i := 1; i <= totalID; i++ {
 		idArray = append(idArray, i)
 	}
 
@@ -124,7 +140,7 @@ func handlerMetaTrack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if id > len(Tracks) {
+	if id > totalID {
 		http.Error(w, "Not Found", 404)
 		return
 	}
@@ -142,7 +158,7 @@ func handlerSpecificTrack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if id > len(Tracks) {
+	if id > totalID {
 		http.Error(w, "Not Found", 404)
 		return
 	}
@@ -164,52 +180,22 @@ func handlerSpecificTrack(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func updateMeta(id int) {
-	var tempMeta = metaTrack{
-		Pilot:       Tracks[id-1].Header.Pilot,
-		GliderType:  Tracks[id-1].Header.GliderType,
-		GliderID:    Tracks[id-1].Header.GliderID,
-		TrackLength: Tracks[id-1].Task.Distance(),
-		Hdate:       Tracks[id-1].Header.Date,
-	}
-	MetaInf = append(MetaInf, tempMeta)
-	fmt.Println(len(MetaInf), len(Tracks))
-}
-
-/*
-func findParams(r *http.Request) (int, string) {
-	in := strings.Trim(r.URL.Path, "/lgcinfo/api/igc/")
-	parts := strings.Split(in, "/")
-	if len(parts) == 1 {
-		id, err := strconv.Atoi(parts[0])
-		if err != nil {
-			//error
-			return 0, ""
-		}
-		return id, ""
-	}
-	id, err := strconv.Atoi(parts[0])
-	if err != nil {
-		//error
-		return 0, ""
-	}
-	field := parts[1]
-	return id, field
-}
-*/
-
 //GetPort ...
 func GetPort() string {
 	var port = os.Getenv("PORT")
 	if port == "" {
-		port = "5000"
+		port = "8080"
 		fmt.Println("Could not find port in environment, setting port to: " + port)
 	}
 	return ":" + port
 }
 
-func main() {
+func init() {
+	totalID = 0
 	StartTime = time.Now()
+}
+
+func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/igcinfo/api", handlerAPI).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc", handlerTracksIn).Methods("POST")
