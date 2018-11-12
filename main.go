@@ -124,7 +124,7 @@ func handlerMetaTrack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if id >= len(Tracks) {
+	if id > len(Tracks) {
 		http.Error(w, "Not Found", 404)
 		return
 	}
