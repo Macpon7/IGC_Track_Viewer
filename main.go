@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -186,11 +187,11 @@ func findParams(r *http.Request) (int, string) {
 func main() {
 	StartTime = time.Now()
 	r := mux.NewRouter()
-	//port := os.Getenv("PORT")
+	port := os.Getenv("PORT")
 	r.HandleFunc("/igcinfo/api", handlerAPI).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc", handlerTracksIn).Methods("POST")
 	r.HandleFunc("/igcinfo/api/igc", handlerTracksOut).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc/{id}", handlerMetaTrack).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc/{id}/{field}", handlerSpecificTrack).Methods("GET")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }
