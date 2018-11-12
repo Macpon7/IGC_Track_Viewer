@@ -14,16 +14,16 @@ import (
 	"github.com/marni/goigc"
 )
 
-//StartTime ...
+//StartTime is the time at which the webserver started running
 var StartTime time.Time
 
-//MetaInf ..
+//MetaInf is the slice of structs containing the meta information on each track
 var MetaInf []metaTrack
 
-//totalID ...
+//totalID is the total number of tracks that are currently stored in memory
 var totalID int
 
-type metaInf struct {
+type apiInf struct {
 	Uptime  string `json:"uptime"`
 	Info    string `json:"info"`
 	Version string `json:"version"`
@@ -45,6 +45,7 @@ type metaTrack struct {
 	TrackLength float64   `json:"track_length"`
 }
 
+//Formats a float of seconds into an ISO 8601 duration string
 func durationFormat(sec float64) string {
 	var days, hours, minutes, seconds float64
 
@@ -67,16 +68,18 @@ func durationFormat(sec float64) string {
 	return upTime
 }
 
+//Returns the meta information of the server
 func handlerAPI(w http.ResponseWriter, r *http.Request) {
 	d := time.Since(StartTime)
 	dur := d.Seconds()
 	upTime := durationFormat(dur)
 
-	metadata := metaInf{upTime, "Service app for IGC tracks", "v1"}
+	metadata := apiInf{upTime, "Service app for IGC tracks", "v1"}
 	http.Header.Add(w.Header(), "content-type", "application/json")
 	json.NewEncoder(w).Encode(metadata)
 }
 
+//Stores information from an igc file in memory based on a url
 func handlerTracksIn(w http.ResponseWriter, r *http.Request) {
 	dec := json.NewDecoder(r.Body)
 	var input trackIn
@@ -116,24 +119,28 @@ func handlerTracksIn(w http.ResponseWriter, r *http.Request) {
 	}
 	MetaInf = append(MetaInf, tempMeta)
 
+	http.Header.Add(w.Header(), "content-type", "application/json")
 	json.NewEncoder(w).Encode(totalID)
 }
 
+//Returns an array of every ID of every track stored in memory
 func handlerTracksOut(w http.ResponseWriter, r *http.Request) {
 	var idArray []int
 	for i := 1; i <= totalID; i++ {
 		idArray = append(idArray, i)
 	}
 
+	http.Header.Add(w.Header(), "content-type", "application/json")
 	json.NewEncoder(w).Encode(idArray)
 }
 
+//Returns the meta information of a specific track
 func handlerMetaTrack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	varID := vars["id"]
 	id, err := strconv.Atoi(varID)
 	if err != nil {
-		//error
+		http.Error(w, "Bad Request", 400)
 		return
 	}
 
@@ -142,16 +149,18 @@ func handlerMetaTrack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	http.Header.Add(w.Header(), "content-type", "application/json")
 	json.NewEncoder(w).Encode(MetaInf[id-1])
 }
 
+//Returns a specific field of meta information about a specific track
 func handlerSpecificTrack(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	varID := vars["id"]
 	field := vars["field"]
 	id, err := strconv.Atoi(varID)
 	if err != nil {
-		//error
+		http.Error(w, "Bad Request", 400)
 		return
 	}
 
@@ -177,13 +186,9 @@ func handlerSpecificTrack(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//GetPort ...
-func GetPort() string {
+//gets the port from the environment
+func getPort() string {
 	var port = os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-		fmt.Println("Could not find port in environment, setting port to: " + port)
-	}
 	return ":" + port
 }
 
@@ -199,5 +204,5 @@ func main() {
 	r.HandleFunc("/igcinfo/api/igc", handlerTracksOut).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc/{id}", handlerMetaTrack).Methods("GET")
 	r.HandleFunc("/igcinfo/api/igc/{id}/{field}", handlerSpecificTrack).Methods("GET")
-	http.ListenAndServe(GetPort(), r)
+	http.ListenAndServe(getPort(), r)
 }
