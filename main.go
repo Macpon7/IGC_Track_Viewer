@@ -20,9 +20,6 @@ var StartTime time.Time
 //MetaInf ..
 var MetaInf []metaTrack
 
-//Tracks ...
-var Tracks []igc.Track
-
 //totalID ...
 var totalID int
 
