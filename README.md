@@ -5,7 +5,6 @@ The application can be accesed at http://igctrackview.herokuapp.com/
 ## Features
 Able to import igc files, store relevant information about the igc files in memory, and return to the user that information through API calls.
 
-
 ## API Reference
 These are the api calls that can be made to http://igctrackview.herokuapp.com/igcinfo to upload an igc file or get some information from a previously uploaded file
 
@@ -29,6 +28,15 @@ Returns meta information about the track with the given id.
 GET /api/igc/<id>/<field>
 ```
 Returns a specific field of information about the track with the given id. The field can be: "pilot", "glider", "glider_id", "H_date", or "track_length".
+
+### Example URLs to IGC files
+Here are some URLs that can be used in the body of POST /api/igc to upload tracks:
+```
+http://skypolaris.org/wp-content/uploads/IGS%20Files/Madrid%20to%20Jerez.igc
+http://skypolaris.org/wp-content/uploads/IGS%20Files/Jarez%20to%20Senegal.igc
+http://skypolaris.org/wp-content/uploads/IGS%20Files/Boavista%20Medellin.igc
+http://skypolaris.org/wp-content/uploads/IGS%20Files/Medellin%20Guatemala.igc
+```
 
 ## Credits
 IGC library for the processing of igc files: [goigc](https://github.com/marni/goigc)
